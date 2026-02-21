@@ -15,17 +15,24 @@ interface ImageData {
   base64: string;
   mimeType: string;
   preview: string;
+  lastModified: number;
+}
+
+interface ScanProgress {
+  current: number;
+  total: number;
 }
 
 interface ReceiptScannerProps {
   onScan: (
-    images: Array<{ base64: string; mimeType: string }>,
+    images: Array<{ base64: string; mimeType: string; lastModified: number }>,
     model: GeminiModelId
   ) => void;
   isLoading: boolean;
+  progress?: ScanProgress | null;
 }
 
-export function ReceiptScanner({ onScan, isLoading }: ReceiptScannerProps) {
+export function ReceiptScanner({ onScan, isLoading, progress }: ReceiptScannerProps) {
   const [images, setImages] = useState<ImageData[]>([]);
   const [selectedModel, setSelectedModel] =
     useState<GeminiModelId>(DEFAULT_MODEL);
@@ -57,7 +64,7 @@ export function ReceiptScanner({ onScan, isLoading }: ReceiptScannerProps) {
 
           const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.8);
           const base64 = compressedDataUrl.split(",")[1];
-          resolve({ base64, mimeType: "image/jpeg", preview: compressedDataUrl });
+          resolve({ base64, mimeType: "image/jpeg", preview: compressedDataUrl, lastModified: file.lastModified });
         };
         img.onerror = () => reject(new Error("Failed to load image"));
         img.src = originalDataUrl;
@@ -108,7 +115,7 @@ export function ReceiptScanner({ onScan, isLoading }: ReceiptScannerProps) {
   const handleScan = () => {
     if (images.length > 0) {
       onScan(
-        images.map(({ base64, mimeType }) => ({ base64, mimeType })),
+        images.map(({ base64, mimeType, lastModified }) => ({ base64, mimeType, lastModified })),
         selectedModel
       );
     }
@@ -261,7 +268,9 @@ export function ReceiptScanner({ onScan, isLoading }: ReceiptScannerProps) {
               {isLoading ? (
                 <>
                   <SpinnerIcon />
-                  Scanning...
+                  {progress && progress.total > 1
+                    ? `Scanning ${progress.current} of ${progress.total}...`
+                    : "Scanning..."}
                 </>
               ) : (
                 `Scan ${images.length === 1 ? "Receipt" : `${images.length} Receipts`}`
