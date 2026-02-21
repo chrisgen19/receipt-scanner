@@ -95,44 +95,46 @@ function ReceiptCard({ data, index, showHeader, formatPrice }: ReceiptCardProps)
       )}
 
       {/* Items table */}
-      <div className="mb-4 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800">
-              <th className="px-4 py-2.5 text-left font-medium text-zinc-600 dark:text-zinc-400">
-                Item
-              </th>
-              <th className="px-4 py-2.5 text-center font-medium text-zinc-600 dark:text-zinc-400">
-                Qty
-              </th>
-              <th className="px-4 py-2.5 text-right font-medium text-zinc-600 dark:text-zinc-400">
-                Price
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.items.map((item, itemIndex) => (
-              <tr
-                key={itemIndex}
-                className="border-b border-zinc-100 last:border-0 dark:border-zinc-800"
-              >
-                <td className="px-4 py-2.5 text-zinc-900 dark:text-zinc-100">
-                  {item.name}
-                </td>
-                <td className="px-4 py-2.5 text-center text-zinc-600 dark:text-zinc-400">
-                  {item.quantity}
-                </td>
-                <td className="px-4 py-2.5 text-right font-mono text-zinc-900 dark:text-zinc-100">
-                  {formatPrice(item.price)}
-                </td>
+      {data.items.length > 0 && (
+        <div className="mb-4 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800">
+                <th className="px-4 py-2.5 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  Item
+                </th>
+                <th className="px-4 py-2.5 text-center font-medium text-zinc-600 dark:text-zinc-400">
+                  Qty
+                </th>
+                <th className="px-4 py-2.5 text-right font-medium text-zinc-600 dark:text-zinc-400">
+                  Price
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {data.items.map((item, itemIndex) => (
+                <tr
+                  key={itemIndex}
+                  className="border-b border-zinc-100 last:border-0 dark:border-zinc-800"
+                >
+                  <td className="px-4 py-2.5 text-zinc-900 dark:text-zinc-100">
+                    {item.name}
+                  </td>
+                  <td className="px-4 py-2.5 text-center text-zinc-600 dark:text-zinc-400">
+                    {item.quantity}
+                  </td>
+                  <td className="px-4 py-2.5 text-right font-mono text-zinc-900 dark:text-zinc-100">
+                    {formatPrice(item.price)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Totals */}
-      <div className="space-y-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+      <div className={`space-y-2 ${data.items.length > 0 ? "border-t border-zinc-200 pt-4 dark:border-zinc-700" : ""}`}>
         {data.subtotal != null && (
           <div className="flex justify-between text-sm text-zinc-600 dark:text-zinc-400">
             <span>Subtotal</span>
