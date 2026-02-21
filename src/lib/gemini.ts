@@ -36,7 +36,7 @@ export const parseReceipt = async (
   mimeType: string
 ): Promise<ReceiptData> => {
   const response = await genai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-2.5-flash",
     contents: [
       {
         role: "user",

@@ -19,12 +19,33 @@ export function ReceiptScanner({ onScan, isLoading }: ReceiptScannerProps) {
   const handleFile = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      setPreview(dataUrl);
+      const originalDataUrl = e.target?.result as string;
 
-      // Extract base64 data (remove the data:mime;base64, prefix)
-      const base64 = dataUrl.split(",")[1];
-      setFileData({ base64, mimeType: file.type });
+      // Compress image client-side to reduce payload size
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1024;
+        let { width, height } = img;
+
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Convert to JPEG at 80% quality for smaller payload
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.8);
+        setPreview(compressedDataUrl);
+
+        const base64 = compressedDataUrl.split(",")[1];
+        setFileData({ base64, mimeType: "image/jpeg" });
+      };
+      img.src = originalDataUrl;
     };
     reader.readAsDataURL(file);
   };
