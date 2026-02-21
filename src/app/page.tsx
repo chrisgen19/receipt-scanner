@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ReceiptScanner } from "@/components/receipt-scanner";
 import { ReceiptResult } from "@/components/receipt-result";
 import type { ScanResultEntry } from "@/app/api/scan/route";
+import type { GeminiModelId } from "@/lib/gemini";
 
 type AppState = "idle" | "scanning" | "result" | "error";
 
@@ -13,7 +14,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const handleScan = async (
-    images: Array<{ base64: string; mimeType: string }>
+    images: Array<{ base64: string; mimeType: string }>,
+    model: GeminiModelId
   ) => {
     setState("scanning");
     setError(null);
@@ -27,6 +29,7 @@ export default function Home() {
             image: base64,
             mimeType,
           })),
+          model,
         }),
       });
 

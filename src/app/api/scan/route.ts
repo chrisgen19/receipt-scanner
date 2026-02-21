@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { parseReceipt } from "@/lib/gemini";
-import type { ReceiptData } from "@/lib/gemini";
+import { parseReceipt, GEMINI_MODEL_IDS, DEFAULT_MODEL } from "@/lib/gemini";
+import type { ReceiptData, GeminiModelId } from "@/lib/gemini";
 
 const MAX_UPLOADS = Number(process.env.MAX_RECEIPT_UPLOADS ?? "3");
 
@@ -15,6 +15,7 @@ const requestSchema = z.object({
     )
     .min(1, "At least one image is required")
     .max(MAX_UPLOADS, `Maximum ${MAX_UPLOADS} images allowed`),
+  model: z.enum(GEMINI_MODEL_IDS).default(DEFAULT_MODEL),
 });
 
 export type ScanResultEntry =
@@ -24,14 +25,14 @@ export type ScanResultEntry =
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { images } = requestSchema.parse(body);
+    const { images, model } = requestSchema.parse(body);
 
     const results: ScanResultEntry[] = [];
 
     // Process sequentially to avoid API rate limits
     for (const { image, mimeType } of images) {
       try {
-        const data = await parseReceipt(image, mimeType);
+        const data = await parseReceipt(image, mimeType, model as GeminiModelId);
         results.push({ success: true, data });
       } catch (err) {
         const message =
