@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ReceiptScanner } from "@/components/receipt-scanner";
 import { ReceiptResult } from "@/components/receipt-result";
 import type { ScanResultEntry } from "@/app/api/scan/route";
-import type { GeminiModelId } from "@/lib/gemini";
+import type { GeminiModelId } from "@/lib/gemini-models";
 
 type AppState = "idle" | "scanning" | "result" | "error";
 
