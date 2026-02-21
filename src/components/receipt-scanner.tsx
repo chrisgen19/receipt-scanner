@@ -1,6 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
+import {
+  GEMINI_MODELS,
+  DEFAULT_MODEL,
+  type GeminiModelId,
+} from "@/lib/gemini";
 
 const MAX_UPLOADS = Number(
   process.env.NEXT_PUBLIC_MAX_RECEIPT_UPLOADS ?? "3"
@@ -13,12 +18,17 @@ interface ImageData {
 }
 
 interface ReceiptScannerProps {
-  onScan: (images: Array<{ base64: string; mimeType: string }>) => void;
+  onScan: (
+    images: Array<{ base64: string; mimeType: string }>,
+    model: GeminiModelId
+  ) => void;
   isLoading: boolean;
 }
 
 export function ReceiptScanner({ onScan, isLoading }: ReceiptScannerProps) {
   const [images, setImages] = useState<ImageData[]>([]);
+  const [selectedModel, setSelectedModel] =
+    useState<GeminiModelId>(DEFAULT_MODEL);
   const [warning, setWarning] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -97,7 +107,10 @@ export function ReceiptScanner({ onScan, isLoading }: ReceiptScannerProps) {
 
   const handleScan = () => {
     if (images.length > 0) {
-      onScan(images.map(({ base64, mimeType }) => ({ base64, mimeType })));
+      onScan(
+        images.map(({ base64, mimeType }) => ({ base64, mimeType })),
+        selectedModel
+      );
     }
   };
 
@@ -113,6 +126,29 @@ export function ReceiptScanner({ onScan, isLoading }: ReceiptScannerProps) {
 
   return (
     <div className="flex flex-col items-center gap-6">
+      {/* Model selector */}
+      <div className="flex w-full items-center gap-2">
+        <label
+          htmlFor="model-select"
+          className="shrink-0 text-sm font-medium text-zinc-700 dark:text-zinc-300"
+        >
+          Model
+        </label>
+        <select
+          id="model-select"
+          value={selectedModel}
+          onChange={(e) => setSelectedModel(e.target.value as GeminiModelId)}
+          disabled={isLoading}
+          className="w-full appearance-none rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 transition-colors hover:border-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-zinc-500"
+        >
+          {GEMINI_MODELS.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {!hasImages ? (
         <div className="flex w-full flex-col gap-4">
           <div className="rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900">
