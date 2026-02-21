@@ -84,9 +84,14 @@ function ReceiptCard({ data, index, showHeader, formatPrice }: ReceiptCardProps)
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
       {(showHeader || data.storeName) && (
-        <h2 className="mb-4 text-center text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+        <h2 className={`text-center text-lg font-semibold text-zinc-900 dark:text-zinc-100 ${data.date ? "mb-1" : "mb-4"}`}>
           {showHeader ? title : data.storeName}
         </h2>
+      )}
+      {data.date && (
+        <p className="mb-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
+          {data.date}
+        </p>
       )}
 
       {/* Items table */}

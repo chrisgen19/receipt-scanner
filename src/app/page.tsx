@@ -8,43 +8,63 @@ import type { GeminiModelId } from "@/lib/gemini-models";
 
 type AppState = "idle" | "scanning" | "result" | "error";
 
+interface ScanProgress {
+  current: number;
+  total: number;
+}
+
 export default function Home() {
   const [state, setState] = useState<AppState>("idle");
   const [results, setResults] = useState<ScanResultEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<ScanProgress | null>(null);
 
   const handleScan = async (
-    images: Array<{ base64: string; mimeType: string }>,
+    images: Array<{ base64: string; mimeType: string; lastModified: number }>,
     model: GeminiModelId
   ) => {
     setState("scanning");
     setError(null);
+    setProgress({ current: 0, total: images.length });
 
-    try {
-      const response = await fetch("/api/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          images: images.map(({ base64, mimeType }) => ({
-            image: base64,
-            mimeType,
-          })),
-          model,
-        }),
-      });
+    const scanResults: ScanResultEntry[] = [];
 
-      const data = await response.json();
+    for (let i = 0; i < images.length; i++) {
+      setProgress({ current: i + 1, total: images.length });
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to scan receipts");
+      try {
+        const response = await fetch("/api/scan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: images[i].base64,
+            mimeType: images[i].mimeType,
+            model,
+            photoDate: new Date(images[i].lastModified).toISOString().split("T")[0],
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          scanResults.push({
+            success: false,
+            error: data.error || "Failed to scan receipt",
+          });
+        } else {
+          scanResults.push(data);
+        }
+      } catch (err) {
+        scanResults.push({
+          success: false,
+          error: err instanceof Error ? err.message : "Something went wrong",
+        });
       }
-
-      setResults(data);
-      setState("result");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-      setState("error");
     }
+
+    setProgress(null);
+    setResults(scanResults);
+    setState("result");
   };
 
   const handleReset = () => {
@@ -72,6 +92,7 @@ export default function Home() {
             <ReceiptScanner
               onScan={handleScan}
               isLoading={state === "scanning"}
+              progress={progress}
             />
             {state === "error" && error && (
               <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
