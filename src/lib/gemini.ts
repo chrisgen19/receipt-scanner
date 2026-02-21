@@ -17,6 +17,7 @@ export const receiptItemSchema = z.object({
 export const receiptSchema = z.object({
   storeName: z.optional(z.string()),
   date: z.optional(z.string()),
+  category: z.optional(z.string()),
   items: z.array(receiptItemSchema).default([]),
   subtotal: z.optional(z.number()),
   tax: z.optional(z.number()),
@@ -32,6 +33,7 @@ const RECEIPT_PROMPT = `Analyze this receipt image and extract the following inf
 - subtotal: the subtotal amount before tax (if visible, otherwise omit)
 - tax: the tax amount (if visible, otherwise omit)
 - total: the total amount
+- category: classify into exactly one of: Food, Health, Transport, Utilities, Bills, Shopping, Entertainment, Education, Other
 
 Return ONLY valid JSON, no markdown or code blocks.
 If you can't determine a quantity, default to 1.
