@@ -5,7 +5,7 @@ import {
   GEMINI_MODELS,
   DEFAULT_MODEL,
   type GeminiModelId,
-} from "@/lib/gemini";
+} from "@/lib/gemini-models";
 
 const MAX_UPLOADS = Number(
   process.env.NEXT_PUBLIC_MAX_RECEIPT_UPLOADS ?? "3"
