@@ -3,16 +3,18 @@
 import { useState } from "react";
 import { ReceiptScanner } from "@/components/receipt-scanner";
 import { ReceiptResult } from "@/components/receipt-result";
-import type { ReceiptData } from "@/lib/gemini";
+import type { ScanResultEntry } from "@/app/api/scan/route";
 
 type AppState = "idle" | "scanning" | "result" | "error";
 
 export default function Home() {
   const [state, setState] = useState<AppState>("idle");
-  const [result, setResult] = useState<ReceiptData | null>(null);
+  const [results, setResults] = useState<ScanResultEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleScan = async (image: string, mimeType: string) => {
+  const handleScan = async (
+    images: Array<{ base64: string; mimeType: string }>
+  ) => {
     setState("scanning");
     setError(null);
 
@@ -20,16 +22,21 @@ export default function Home() {
       const response = await fetch("/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image, mimeType }),
+        body: JSON.stringify({
+          images: images.map(({ base64, mimeType }) => ({
+            image: base64,
+            mimeType,
+          })),
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to scan receipt");
+        throw new Error(data.error || "Failed to scan receipts");
       }
 
-      setResult(data);
+      setResults(data);
       setState("result");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -39,7 +46,7 @@ export default function Home() {
 
   const handleReset = () => {
     setState("idle");
-    setResult(null);
+    setResults(null);
     setError(null);
   };
 
@@ -51,12 +58,12 @@ export default function Home() {
             Receipt Scanner
           </h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Snap a photo or upload a receipt to extract items and totals
+            Snap a photo or upload receipts to extract items and totals
           </p>
         </div>
 
-        {state === "result" && result ? (
-          <ReceiptResult data={result} onReset={handleReset} />
+        {state === "result" && results ? (
+          <ReceiptResult results={results} onReset={handleReset} />
         ) : (
           <>
             <ReceiptScanner
