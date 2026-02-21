@@ -78,20 +78,38 @@ interface ReceiptCardProps {
   formatPrice: (price: number) => string;
 }
 
+const CATEGORY_COLORS: Record<string, string> = {
+  Food: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
+  Health: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
+  Transport: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  Utilities: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300",
+  Bills: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
+  Shopping: "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300",
+  Entertainment: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300",
+  Education: "bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300",
+  Other: "bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300",
+};
+
 function ReceiptCard({ data, index, showHeader, formatPrice }: ReceiptCardProps) {
   const title = data.storeName ?? `Receipt #${index + 1}`;
+  const hasSubheader = data.date || data.category;
 
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
       {(showHeader || data.storeName) && (
-        <h2 className={`text-center text-lg font-semibold text-zinc-900 dark:text-zinc-100 ${data.date ? "mb-1" : "mb-4"}`}>
+        <h2 className={`text-center text-lg font-semibold text-zinc-900 dark:text-zinc-100 ${hasSubheader ? "mb-1" : "mb-4"}`}>
           {showHeader ? title : data.storeName}
         </h2>
       )}
-      {data.date && (
-        <p className="mb-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
-          {data.date}
-        </p>
+      {hasSubheader && (
+        <div className="mb-4 flex items-center justify-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+          {data.date && <span>{data.date}</span>}
+          {data.category && (
+            <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${CATEGORY_COLORS[data.category] ?? CATEGORY_COLORS.Other}`}>
+              {data.category}
+            </span>
+          )}
+        </div>
       )}
 
       {/* Items table */}
