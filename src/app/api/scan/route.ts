@@ -38,11 +38,20 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, data } satisfies ScanResultEntry);
-  } catch {
+  } catch (error) {
+    const detail =
+      error instanceof z.ZodError
+        ? `Validation failed: ${error.issues.map((i) => i.message).join(", ")}`
+        : error instanceof SyntaxError
+          ? "Gemini returned invalid JSON"
+          : error instanceof Error
+            ? error.message
+            : "Unknown error";
+
     return NextResponse.json(
       {
         success: false,
-        error: "Could not extract receipt data from this image. Try a clearer photo.",
+        error: `Could not extract receipt data. ${detail}`,
       } satisfies ScanResultEntry,
       { status: 200 }
     );

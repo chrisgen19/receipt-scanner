@@ -10,8 +10,8 @@ const genai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMINI_API_KEY! });
 
 export const receiptItemSchema = z.object({
   name: z.string(),
-  quantity: z.number(),
-  price: z.number(),
+  quantity: z.coerce.number(),
+  price: z.coerce.number(),
 });
 
 export const receiptSchema = z.object({
@@ -19,9 +19,9 @@ export const receiptSchema = z.object({
   date: z.optional(z.string()),
   category: z.optional(z.string()),
   items: z.array(receiptItemSchema).default([]),
-  subtotal: z.optional(z.number()),
-  tax: z.optional(z.number()),
-  total: z.number(),
+  subtotal: z.optional(z.coerce.number()),
+  tax: z.optional(z.coerce.number()),
+  total: z.coerce.number(),
 });
 
 export type ReceiptData = z.infer<typeof receiptSchema>;
