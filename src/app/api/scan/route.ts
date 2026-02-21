@@ -15,10 +15,21 @@ export type ScanResultEntry =
   | { success: false; error: string };
 
 export async function POST(request: Request) {
+  let parsed: z.infer<typeof requestSchema>;
+
   try {
     const body = await request.json();
-    const { image, mimeType, model, photoDate } = requestSchema.parse(body);
+    parsed = requestSchema.parse(body);
+  } catch (error) {
+    const message =
+      error instanceof z.ZodError
+        ? error.issues[0]?.message ?? "Invalid request data"
+        : "Invalid request body";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 
+  try {
+    const { image, mimeType, model, photoDate } = parsed;
     const data = await parseReceipt(image, mimeType, model as GeminiModelId);
 
     // Fallback to photo file date when Gemini couldn't extract a date
@@ -27,18 +38,12 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, data } satisfies ScanResultEntry);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: error.issues[0]?.message ?? "Invalid request data" },
-        { status: 400 }
-      );
-    }
-
-    const message =
-      error instanceof Error ? error.message : "Failed to parse receipt";
+  } catch {
     return NextResponse.json(
-      { success: false, error: message } satisfies ScanResultEntry,
+      {
+        success: false,
+        error: "Could not extract receipt data from this image. Try a clearer photo.",
+      } satisfies ScanResultEntry,
       { status: 200 }
     );
   }
